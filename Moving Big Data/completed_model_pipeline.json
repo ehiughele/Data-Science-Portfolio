@@ -1,0 +1,109 @@
+{
+  "objects": [
+    {
+      "role": "MBDEHIUGH-DataPipelineDefaultRole",
+      "subject": "EHIBHAHIEMEN_UGHELE_Pipeline_Failure",
+      "name": "DataProcessingFail",
+      "id": "ActionId_aR6Om",
+      "message": "Pipeline failure",
+      "type": "SnsAlarm",
+      "topicArn": "arn:aws:sns:eu-west-1:556593374574:de-mbd-predict-ehibhahiemen-ughele-SNS"
+    },
+    {
+      "database": {
+        "ref": "DatabaseId_qsC4Z"
+      },
+      "createTableSql": "DROP TABLE IF EXISTS public.historical_stocks_data;CREATE TABLE IF NOT EXISTS public.historical_stocks_data\n(\n    stock_date VARCHAR(56) NULL,\n    open_value VARCHAR(56) NULL,\n    high_value VARCHAR(56) NULL,\n    low_value VARCHAR(56) NULL,\n    close_value VARCHAR(56) NULL,\n    volume_traded VARCHAR(56) NULL,\n    daily_percent_change VARCHAR(56) NULL,\n    value_change character VARCHAR(56) NULL,\n    company_name character VARCHAR(56) NULL;",
+      "name": "RdsTable",
+      "insertQuery": "INSERT INTO public.historical_stocks_data VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "id": "DataNodeId_n2yz9",
+      "type": "SqlDataNode",
+      "table": "historical_stocks_data"
+    },
+    {
+      "databaseName": "postgres",
+      "*password": "12",
+      "name": "Rds-Database",
+      "id": "DatabaseId_qsC4Z",
+      "type": "RdsDatabase",
+      "rdsInstanceId": "database-1",
+      "username": "postgres"
+    },
+    {
+      "output": {
+        "ref": "DataNodeId_n2yz9"
+      },
+      "input": {
+        "ref": "DataNodeId_6Cu6b"
+      },
+      "dependsOn": {
+        "ref": "ShellCommandActivityId_TSsvb"
+      },
+      "onFail": {
+        "ref": "ActionId_aR6Om"
+      },
+      "name": "DefaultCopyActivity1",
+      "runsOn": {
+        "ref": "ResourceId_qNNn8"
+      },
+      "id": "CopyActivityId_qrCUY",
+      "type": "CopyActivity",
+      "onSuccess": {
+        "ref": "ActionId_nxiAX"
+      }
+    },
+    {
+      "resourceRole": "MBDEHIUGH-DataPipelineDefaultResourceRole",
+      "imageId": "ami-02ef9a95f09b568e6",
+      "role": "MBDEHIUGH-DataPipelineDefaultRole",
+      "securityGroupIds": "sg-0e0f1b5bcd1e501cf",
+      "instanceType": "t2.micro",
+      "name": "de-mbd-predict-EC2",
+      "actionOnTaskFailure": "terminate",
+      "id": "ResourceId_qNNn8",
+      "type": "Ec2Resource",
+      "region": "eu-west-1",
+      "terminateAfter": "40 Minutes"
+    },
+    {
+      "role": "MBDEHIUGH-DataPipelineDefaultRole",
+      "subject": "EHIBHAHIEMEN_UGHELE_Pipeline_Success",
+      "name": "DataProcessSucess",
+      "id": "ActionId_nxiAX",
+      "message": "Pipeline success",
+      "type": "SnsAlarm",
+      "topicArn": "arn:aws:sns:eu-west-1:556593374574:de-mbd-predict-ehibhahiemen-ughele-SNS"
+    },
+    {
+      "scriptUri": "s3://de-mbd-predict-ehibhahiemen-ughele-s3-source/Scripts/bash_script.sh",
+      "onFail": {
+        "ref": "ActionId_aR6Om"
+      },
+      "name": "Process-stock-data",
+      "runsOn": {
+        "ref": "ResourceId_qNNn8"
+      },
+      "id": "ShellCommandActivityId_TSsvb",
+      "type": "ShellCommandActivity",
+      "onSuccess": {
+        "ref": "ActionId_nxiAX"
+      }
+    },
+    {
+      "filePath": "s3://de-mbd-predict-ehibhahiemen-ughele-s3-source/Output/historical_stock_data.csv",
+      "name": "DefaultDataNode2",
+      "id": "DataNodeId_6Cu6b",
+      "type": "S3DataNode"
+    },
+    {
+      "failureAndRerunMode": "CASCADE",
+      "resourceRole": "MBDEHIUGH-DataPipelineDefaultResourceRole",
+      "role": "MBDEHIUGH-DataPipelineDefaultRole",
+      "pipelineLogUri": " ",
+      "scheduleType": "ONDEMAND",
+      "name": "Default",
+      "id": "Default"
+    }
+  ],
+  "parameters": []
+}
